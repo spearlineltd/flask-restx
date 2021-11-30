@@ -649,17 +649,22 @@ class Url(StringMixin, Raw):
     :param str endpoint: Endpoint name. If endpoint is ``None``, ``request.endpoint`` is used instead
     :param bool absolute: If ``True``, ensures that the generated urls will have the hostname included
     :param str scheme: URL scheme specifier (e.g. ``http``, ``https``)
+    :param model base_model: Model to serialize object with
     """
 
-    def __init__(self, endpoint=None, absolute=False, scheme=None, **kwargs):
+    def __init__(self, endpoint=None, absolute=False, scheme=None, model=None, **kwargs):
         super(Url, self).__init__(**kwargs)
         self.endpoint = endpoint
         self.absolute = absolute
         self.scheme = scheme
+        self.model = None
 
     def output(self, key, obj, **kwargs):
         try:
-            data = to_marshallable_type(obj)
+            if model is not None:
+                data = model.marshal(obj)
+            else:
+                data = to_marshallable_type(obj)
             endpoint = self.endpoint if self.endpoint is not None else request.endpoint
             o = urlparse(url_for(endpoint, _external=self.absolute, **data))
             if self.absolute:
