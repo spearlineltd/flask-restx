@@ -275,6 +275,14 @@ class Nested(Raw):
         return marshal(value, self.nested, skip_none=self.skip_none, ordered=ordered)
 
     def schema(self):
+        # Special case for wildcard
+        if len(self.nested.items()) == 1:
+            k, v = list(self.nested.items())[0]
+            if k == "*" and type(v) == Wildcard:
+                schema = v.schema()
+                schema["title"] = self.nested.name
+                return schema
+
         schema = super(Nested, self).schema()
         ref = "#/definitions/{0}".format(self.nested.name)
 
